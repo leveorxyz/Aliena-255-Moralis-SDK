@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
 
     public async void WalletConnectHandler(WCSessionData data)
     {
+        Debug.Log("Hello Called");
         // Extract wallet address from the Wallet Connect Session data object.
         string address = data.accounts[0].ToLower();
         string appId = MoralisInterface.GetClient().ApplicationId;
@@ -58,20 +59,20 @@ public class GameManager : MonoBehaviour
         if (serverTimeResponse == null || !serverTimeResponse.ContainsKey("dateTime") ||
             !long.TryParse(serverTimeResponse["dateTime"].ToString(), out serverTime))
         {
-            Debug.Log("Failed to retrieve server time from Moralis Server!");
+            Debug.Log("Hello Failed to retrieve server time from Moralis Server!");
         }
 
-        Debug.Log($"Sending sign request for {address} ...");
+        Debug.Log($"Hello Sending sign request for {address} ...");
 
         string signMessage = $"Moralis Authentication\n\nId: {appId}:{serverTime}";
         string response = await walletConnect.Session.EthPersonalSign(address, signMessage);
 
-        Debug.Log($"Signature {response} for {address} was returned.");
+        Debug.Log($"Hello Signature {response} for {address} was returned.");
 
         // Create moralis auth data from message signing response.
         Dictionary<string, object> authData = new Dictionary<string, object> { { "id", address }, { "signature", response }, { "data", signMessage } }; 
 
-        Debug.Log("Logging in user.");
+        Debug.Log("Hello Logging in user.");
 
         // Attempt to login user.
         MoralisUser user = await MoralisInterface.LogInAsync(authData);
@@ -79,11 +80,11 @@ public class GameManager : MonoBehaviour
         if (user != null)
         {
             UserLoggedInHandler();
-            Debug.Log($"User {user.username} logged in successfully. ");
+            Debug.Log($"Hello User {user.username} logged in successfully. ");
         }
         else
         {
-            Debug.Log("User login failed.");
+            Debug.Log("Hello User login failed.");
         }
     }
 
@@ -94,9 +95,11 @@ public class GameManager : MonoBehaviour
         
         //Check if user is logged in
         var user = await MoralisInterface.GetUserAsync();
+        Debug.Log("Hello" + user);
 
         if (user != null)
         {
+            Debug.Log("Hello not null");
             
             string addr = user.authData["moralisEth"]["id"].ToString();
             AuthController.walletAddress = addr;
@@ -105,6 +108,7 @@ public class GameManager : MonoBehaviour
             playerWalletAddress.text = string.Format("{0}...{1}", addr.Substring(0, 6), addr.Substring(addr.Length - 3, 3));
             playerWalletAddress.gameObject.SetActive(true);
         }
+        Debug.Log("Hello null");
     }
     
     private async void LogOut()

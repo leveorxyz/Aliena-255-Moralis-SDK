@@ -14,6 +14,12 @@ public class VRLookMove : MonoBehaviour
     public Text LevelValue;
     public Text WalletAddress;
     public Text NFTList;
+    public Text healthText;
+    public Text fuelText;
+    public Text dangerText;
+
+    public int health = 100;
+    public int fuel = 100;
     
     // Orbit counter
     public int playerLocationinOrbit;
@@ -35,13 +41,30 @@ public class VRLookMove : MonoBehaviour
     public Text messageText;
 
     bool isMove = false;
+    bool isFocused = false;
+    bool isUpdateHealth = false;
+
     Random rnd = new Random(DateTime.Now.Millisecond);
 
     public bool isClickMintNFT = false;
     public bool isClickGetNFT = false;
 
+    bool shouldTakeDamage = false;
+    public GameObject[] enemies;
+
+    public bool[] visitedPlanet;
+    public Image[] planetAvater;
+    public Text pointsText;
+
     void Start()
     {
+        visitedPlanet = new bool[9];
+
+        for (int i = 0; i < visitedPlanet.Length; i++)
+        {
+            visitedPlanet[i] = false;
+        }
+
         WalletAddress.text = AuthController.walletAddress;
         sunSpeher = GameObject.FindGameObjectWithTag("sunsphere");
 
@@ -63,6 +86,40 @@ public class VRLookMove : MonoBehaviour
         
         countOrbit();
         updateMyLocation();
+
+        fuelText.text = "Fuel " + fuel.ToString() + "%";
+
+        InvokeRepeating("updateFuelLevel", 1f, 1f);
+        InvokeRepeating("takeDamage", 1f, 1f);
+
+        enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+
+    }
+
+    void updateFuelLevel()
+    {
+        if (isMove) fuel -= 1;
+        else if (!isMove && isFocused) fuel += 2;
+
+        if (fuel <= 0) fuel = 0;
+        else if (fuel > 100) fuel = 100;
+
+        fuelText.text = "Fuel " + fuel.ToString() + "%";
+    }
+
+    void takeDamage()
+    {
+
+        if(shouldTakeDamage)
+        {
+            health -= 1;
+
+            if (health < 0) health = 0;
+
+            healthText.text = "Health " + health.ToString() + "%";
+        }
+
         
     }
 
@@ -76,8 +133,55 @@ public class VRLookMove : MonoBehaviour
 
         needleSpeed = Mathf.Clamp(needleSpeed, 0f, needleSpeedMax);
         needleTransfrom.transform.localEulerAngles = new Vector3(0, 0, GetSpeedRotation());
-       
-      
+
+        for(int i=0; i<planets.Length; i++)
+        {
+            OrbitController orbitController = planets[i].GetComponent<OrbitController>();
+            if(orbitController.stop == 0)
+            {
+                isFocused = true;
+                break;
+            }
+            else
+            {
+                isFocused = false;
+            }
+        }
+
+        float minDistance = float.MaxValue;
+
+        for(int i=0; i<enemies.Length; i++)
+        {
+            float distance = Vector3.Distance(gameObject.transform.position, enemies[i].transform.position);
+
+            if (distance < minDistance)
+                minDistance = distance;
+        }
+
+        dangerText.text = "Danger in " + (int)minDistance + " mkm";
+
+        if (minDistance <= 20)
+            shouldTakeDamage = true;
+        else
+            shouldTakeDamage = false;
+
+        int points = 0;
+
+        for(int i=0; i<visitedPlanet.Length; i++)
+        {
+            if(visitedPlanet[i])
+            {
+                planetAvater[i].color = new Color32(255, 255, 255, 255);
+                points += 10;
+            }
+            else
+            {
+                planetAvater[i].color = new Color32(255, 255, 255, 40);
+            }
+        }
+
+        pointsText.text = "Points " + points.ToString();
+
     }
 
     public void onClickMintNFTButton()

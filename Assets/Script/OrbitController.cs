@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 using Random2 = System.Random;
@@ -51,13 +52,17 @@ public class OrbitController : MonoBehaviour
         if (orbitingObject == null)
         {
             orbitActive = false;
-            return;
+           
         }
+        else
+        {
+            SetOrbitingObjectPosition();
+            StartCoroutine(AnimateOrbit());
+            ORBITXAXIS = orbitPath.xAxis;
+            ORBITYAXIS = orbitPath.yAxis;
 
-        SetOrbitingObjectPosition();
-        StartCoroutine(AnimateOrbit());
-        ORBITXAXIS = orbitPath.xAxis;
-        ORBITYAXIS = orbitPath.yAxis;
+        }
+       
     }
     
     void Update()
@@ -91,13 +96,12 @@ public class OrbitController : MonoBehaviour
 
             GameObject.FindGameObjectWithTag("Player").GetComponent<VRLookMove>().GetNFTS(model);
         }
-
-
-
+        
         info.transform.position = new Vector3(transform.position.x + infoX ,  transform.position.y+infoY, transform.position.z + infoZ);
         transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime);
         focusPlanet();
     }
+
 
     public void focusPlanet()
     {
@@ -117,21 +121,57 @@ public class OrbitController : MonoBehaviour
         float distance = Vector3.Distance(GameObject.FindWithTag("Player").transform.position, transform.position);
         int orbitNumber = GameObject.FindWithTag("Player").GetComponent<VRLookMove>().playerLocationinOrbit;
 
+        VRLookMove vRLookMove = GameObject.FindWithTag("Player").GetComponent<VRLookMove>();
 
         if (distance <= minDistancefromPlayerToPlanet)
         {
-            if (gameObject.tag == "mercury" && orbitNumber == 1) stop = 0.0f;
-            else if (gameObject.tag == "venus" && orbitNumber == 2) stop = 0.0f;
-            else if (gameObject.tag == "earth" && orbitNumber == 3) stop = 0.0f;
-            else if (gameObject.tag == "mars" && orbitNumber == 4) stop = 0.0f;
-            else if (gameObject.tag == "jupiter" && orbitNumber == 5) stop = 0.0f;
-            else if (gameObject.tag == "saturn" && orbitNumber == 6) stop = 0.0f;
-            else if (gameObject.tag == "uranus" && orbitNumber == 7) stop = 0.0f;
-            else if (gameObject.tag == "neptune" && orbitNumber == 8) stop = 0.0f;
+            if (gameObject.tag == "mercury" && orbitNumber == 1)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[0] = true;
+            }
+            else if (gameObject.tag == "venus" && orbitNumber == 2)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[1] = true;
+            }
+            else if (gameObject.tag == "earth" && orbitNumber == 3)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[2] = true;
+            }
+
+            else if (gameObject.tag == "mars" && orbitNumber == 4)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[3] = true;
+            }
+            else if (gameObject.tag == "jupiter" && orbitNumber == 5)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[4] = true;
+            }
+            else if (gameObject.tag == "saturn" && orbitNumber == 6)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[5] = true;
+            }
+            else if (gameObject.tag == "uranus" && orbitNumber == 7)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[6] = true;
+            }
+            else if (gameObject.tag == "neptune" && orbitNumber == 8)
+            {
+                stop = 0.0f;
+                vRLookMove.visitedPlanet[7] = true;
+            }
             else stop = 1.0f;
         }
         else
             stop = 1.0f;
+
+        
 
     }
 

@@ -21,5 +21,6 @@ public class RandomMovement : MonoBehaviour
     void Update()
     {
         transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime);
+
     }
 }
