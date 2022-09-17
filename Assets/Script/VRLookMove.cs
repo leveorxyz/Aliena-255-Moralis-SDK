@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -79,6 +82,7 @@ public class VRLookMove : MonoBehaviour
         planets[6] = GameObject.FindGameObjectWithTag("uranus");
         planets[7] = GameObject.FindGameObjectWithTag("neptune");
 
+        
 
 
         needleSpeed = 0.0f;
@@ -93,6 +97,8 @@ public class VRLookMove : MonoBehaviour
         InvokeRepeating("takeDamage", 1f, 1f);
 
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        getPlayerData();
 
 
     }
@@ -203,6 +209,144 @@ public class VRLookMove : MonoBehaviour
         messageText.text = "";
     }
 
+    public void getPlayerData()
+    {
+        messageText.text = "Fetching your Data";
+
+        StartCoroutine(makeGetPlayerDataRequest("https://api.nft.storage/"));
+    }
+
+    IEnumerator makeGetPlayerDataRequest(string url)
+    {
+        var request = new UnityWebRequest(url, "GET");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes("");
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGYzOGY5OWMwYzQ5RDUwNzM2NTA1NjA4ZjY2M0FhYzVBZGJmRWNkMDkiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MzM4Nzc2OTkxNywibmFtZSI6IkFsaWVuYS0yNTUifQ.zQrushw1sgZ1P56NvGkbDGJaafCL-PIAeCzXNKFSUbs");
+
+        yield return request.SendWebRequest();
+
+        if(request.responseCode == 200)
+        {
+            try
+            {
+                dynamic data = JObject.Parse(request.downloadHandler.text);
+                string cid = data.value[0].cid;
+
+                if(cid.Length > 3)
+                {
+                    StartCoroutine(downloadPlayerData("https://" + cid + ".ipfs.nftstorage.link"));
+
+                }
+                else
+                {
+                    messageText.text = "No data found!";
+                }
+
+            }
+            catch(Exception e)
+            {
+                Debug.Log("Hello " + e.Message);
+            }
+            
+
+        }
+        else
+        {
+            messageText.text = "Something went wrong! Error Code:" + request.responseCode.ToString();
+            Debug.Log("Hello 3 " + request.responseCode);
+        }
+
+    }
+
+    IEnumerator downloadPlayerData(string url)
+    {
+        var request = new UnityWebRequest(url, "GET");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes("");
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGYzOGY5OWMwYzQ5RDUwNzM2NTA1NjA4ZjY2M0FhYzVBZGJmRWNkMDkiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MzM4Nzc2OTkxNywibmFtZSI6IkFsaWVuYS0yNTUifQ.zQrushw1sgZ1P56NvGkbDGJaafCL-PIAeCzXNKFSUbs");
+
+        yield return request.SendWebRequest();
+
+        if (request.responseCode == 200)
+        {
+            dynamic data = JObject.Parse(request.downloadHandler.text);
+
+            string visitedPlanetResult = data.visitedPlanet;
+
+            for (int i = 0; i < visitedPlanetResult.Length; i++)
+            {
+                if (visitedPlanetResult[i] == '1')
+                    visitedPlanet[i] = true;
+                else
+                    visitedPlanet[i] = false;
+            }
+
+            messageText.text = "Player data is up to date";
+
+        }
+        else
+            messageText.text = "No data found!";
+
+
+    }
+
+    public void uploadPlayerData()
+    {
+
+        string visitedPlanetString = "";
+        int playerPoint = 0;
+
+        for(int i=0; i<visitedPlanet.Length; i++)
+        {
+            string val = "0";
+
+            if (visitedPlanet[i])
+            {
+                val = "1";
+                playerPoint += 10;
+            }
+
+            visitedPlanetString += val;
+        }
+
+        var myData = new
+        {
+            walletAddress = AuthController.walletAddress,
+            visitedPlanet = visitedPlanetString,
+            points = playerPoint,
+        };
+
+        string data = JsonConvert.SerializeObject(myData);
+
+        messageText.text = "Uploading Player Data";
+
+
+        StartCoroutine(makeUploadRequest("https://api.nft.storage/upload", data));
+
+    }
+
+    IEnumerator makeUploadRequest(string url, string bodyJsonString)
+    {
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGYzOGY5OWMwYzQ5RDUwNzM2NTA1NjA4ZjY2M0FhYzVBZGJmRWNkMDkiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MzM4Nzc2OTkxNywibmFtZSI6IkFsaWVuYS0yNTUifQ.zQrushw1sgZ1P56NvGkbDGJaafCL-PIAeCzXNKFSUbs");
+
+        yield return request.SendWebRequest();
+
+        if (request.responseCode == 200)
+            messageText.text = "Uploaded";
+        else
+            messageText.text = "Something went wrong! Error Code:" + request.responseCode.ToString();
+
+
+    }
 
     public void makeReq(string URL, bool isGetMintStatusAction)
     {
