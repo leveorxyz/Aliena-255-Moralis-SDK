@@ -59,6 +59,8 @@ public class VRLookMove : MonoBehaviour
     public Image[] planetAvater;
     public Text pointsText;
 
+    private bool isClickGetMintedStatus = false;
+
     void Start()
     {
         visitedPlanet = new bool[9];
@@ -192,6 +194,9 @@ public class VRLookMove : MonoBehaviour
 
     public void onClickMintNFTButton()
     {
+        messageText.text = "Minting...";
+        StartCoroutine(Minting());
+        return;
         isClickMintNFT = !isClickMintNFT;
     }
 
@@ -211,9 +216,42 @@ public class VRLookMove : MonoBehaviour
 
     public void getPlayerData()
     {
-        messageText.text = "Fetching your Data";
+        messageText.text = "Fetching your Data...";
+        StartCoroutine(GetPlayerDataDebug());
+        return;
 
         StartCoroutine(makeGetPlayerDataRequest("https://api.nft.storage/"));
+    }
+
+    IEnumerator GetPlayerDataDebug()
+    {
+
+        yield return new WaitForSeconds(5);
+
+
+        string visitedPlanetResult = "00110010";
+
+        for (int i = 0; i < visitedPlanetResult.Length; i++)
+        {
+            if (visitedPlanetResult[i] == '1')
+                visitedPlanet[i] = true;
+            else
+                visitedPlanet[i] = false;
+        }
+
+        messageText.text = "Player data is up to date";
+
+
+    }
+
+    IEnumerator UploadPlayerDataDebug()
+    {
+
+        yield return new WaitForSeconds(5);
+
+        messageText.text = "Player data is up to date";
+
+
     }
 
     IEnumerator makeGetPlayerDataRequest(string url)
@@ -296,6 +334,9 @@ public class VRLookMove : MonoBehaviour
 
     public void uploadPlayerData()
     {
+        messageText.text = "Uploading Player Data";
+        StartCoroutine(UploadPlayerDataDebug());
+        return;
 
         string visitedPlanetString = "";
         int playerPoint = 0;
@@ -393,7 +434,40 @@ public class VRLookMove : MonoBehaviour
 
     public void onClickGetNFT()
     {
+        messageText.text = "Getting Minted Status...";
+
+        StartCoroutine(ChangeMintedStatusText());
+      
+        return;
         isClickGetNFT = !isClickGetNFT;
+    }
+
+    IEnumerator Minting()
+    {
+
+        yield return new WaitForSeconds(5);
+
+        messageText.text = "Minted";
+
+
+    }
+
+    IEnumerator ChangeMintedStatusText()
+    {
+        
+        yield return new WaitForSeconds(5);
+        if(isClickGetMintedStatus)
+        {
+            messageText.text = "Already Minted";
+            
+        }
+        else
+        {
+            messageText.text = "Not Minted";
+        }
+        isClickGetMintedStatus = !isClickGetMintedStatus;
+
+
     }
 
     public void GetNFTS(PlanetModel model)

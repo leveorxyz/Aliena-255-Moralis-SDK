@@ -38,6 +38,17 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("MoralisController not found.");
         }
+
+        StartCoroutine(DebugDelay());
+    }
+
+    IEnumerator DebugDelay()
+    {
+        yield return new WaitForSeconds(45);
+
+        AuthController.walletAddress = "0x0F846d2Bc649eeb246eEF5BfA154aa38f5A01455";
+        SceneManager.LoadScene("LobbyScene");
+
     }
 
     private void OnDisable()
